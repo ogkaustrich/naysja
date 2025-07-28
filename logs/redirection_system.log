@@ -1,0 +1,16 @@
+2025-07-27 08:52:15 [INFO] ConnectionManager initialisé avec succès
+2025-07-27 08:52:15 [INFO] GeoFilter initialisé - Pays autorisés: AT, MA
+2025-07-27 08:52:15 [INFO] ConnectionManager initialisé avec succès
+2025-07-27 08:52:15 [INFO] Démarrage du système de redirection WebSocket avec filtrage géographique...
+2025-07-27 08:52:15 [INFO] Serveur démarré sur http://0.0.0.0:5000
+2025-07-27 08:52:15 [INFO] Interface d'administration: http://0.0.0.0:5000/admin
+2025-07-27 08:52:15 [INFO] Mot de passe admin: Azerty2025
+2025-07-27 08:52:15 [INFO] Pays autorisés: AT, MA
+2025-07-27 08:52:20 [INFO] Géolocalisation réussie pour 41.251.55.55 via ip-api.com: MA
+2025-07-27 08:52:20 [INFO] Accès AUTORISÉ pour 41.251.55.55 depuis Morocco - Pays autorisé
+2025-07-27 08:52:20 [INFO] Nouvelle connexion WebSocket: sV7q3jIQ_FLHUTurAAAB depuis 41.251.55.55 (Morocco)
+2025-07-27 08:53:15 [INFO] Connexion admin réussie depuis 34.238.126.58
+2025-07-27 08:53:15 [INFO] Géolocalisation réussie pour 34.238.126.58 via ip-api.com: US
+2025-07-27 08:53:15 [WARN] Accès BLOQUÉ pour 34.238.126.58 depuis United States - Pays non autorisé
+2025-07-27 08:53:15 [WARN] Accès BLOQUÉ pour 34.238.126.58 depuis United States - Pays non autorisé
+2025-07-27 08:53:25 [INFO] Résultat géolocalisation depuis le cache pour 34.238.126.58: US
