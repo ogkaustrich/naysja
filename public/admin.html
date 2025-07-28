@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panneau d'Administration - Système de Redirection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .refresh-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #2980b9;
+        }
+
+        .clients-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .clients-table th,
+        .clients-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .clients-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .clients-table td {
+            font-size: 13px;
+        }
+
+        .country-flag {
+            display: inline-block;
+            width: 20px;
+            height: 15px;
+            margin-right: 8px;
+            border-radius: 2px;
+            background: #ddd;
+            text-align: center;
+            line-height: 15px;
+            font-size: 10px;
+        }
+
+        .redirect-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .redirect-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: background 0.3s;
+        }
+
+        .redirect-btn:hover {
+            background: #229954;
+        }
+
+        .status-online {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-offline {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .no-clients {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .logs-container {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f8f9fa;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-info {
+            color: #3498db;
+        }
+
+        .log-warning {
+            color: #f39c12;
+        }
+
+        .log-error {
+            color: #e74c3c;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .clients-table {
+                font-size: 11px;
+            }
+            
+            .redirect-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎛️ Panneau d'Administration</h1>
+        <p>Système de Redirection WebSocket avec Filtrage Géographique</p>
+        <button class="logout-btn" onclick="logout()">Déconnexion</button>
+    </div>
+
+    <div class="container">
+        <!-- Statistiques -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="activeClients">-</div>
+                <div class="stat-label">Clients Actifs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalClients">-</div>
+                <div class="stat-label">Total Clients</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="redirections">-</div>
+                <div class="stat-label">Redirections</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="uptime">-</div>
+                <div class="stat-label">Uptime (h)</div>
+            </div>
+        </div>
+
+        <!-- Clients connectés -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">👥 Clients Connectés</div>
+                <button class="refresh-btn" onclick="refreshClients()">🔄 Actualiser</button>
+            </div>
+            <div id="clientsContainer">
+                <div class="loading">Chargement des clients...</div>
+            </div>
+        </div>
+
+        <!-- Logs récents -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">📋 Logs Récents</div>
+                <button class="refresh-btn" onclick="refreshLogs()">🔄 Actualiser</button>
+            </div>
+            <div class="logs-container" id="logsContainer">
+                <div class="loading">Chargement des logs...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script>
+        let clients = [];
+        let pages = {};
+        let socket = null;
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAdmin();
+            loadStats();
+            loadClients();
+            loadPages();
+            loadLogs();
+            
+            // Actualisation automatique toutes les 30 secondes
+            setInterval(() => {
+                loadStats();
+                loadClients();
+            }, 30000);
+        });
+
+        function initializeAdmin() {
+            // Connexion WebSocket pour les mises à jour en temps réel
+            try {
+                socket = io();
+                
+                socket.on('connect', () => {
+                    console.log('Connexion WebSocket admin établie');
+                });
+                
+                socket.on('client_update', () => {
+                    loadClients();
+                    loadStats();
+                });
+                
+                socket.on('disconnect', () => {
+                    console.log('Connexion WebSocket admin fermée');
+                });
+            } catch (error) {
+                console.warn('WebSocket non disponible:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                document.getElementById('activeClients').textContent = stats.active_clients || 0;
+                document.getElementById('totalClients').textContent = stats.total_clients || 0;
+                document.getElementById('redirections').textContent = stats.redirections || 0;
+                document.getElementById('uptime').textContent = stats.uptime_hours || 0;
+            } catch (error) {
+                console.error('Erreur chargement stats:', error);
+            }
+        }
+
+        async function loadClients() {
+            try {
+                const response = await fetch('/api/clients');
+                clients = await response.json();
+                renderClients();
+            } catch (error) {
+                console.error('Erreur chargement clients:', error);
+                document.getElementById('clientsContainer').innerHTML = 
+                    '<div class="error">Erreur lors du chargement des clients</div>';
+            }
+        }
+
+        async function loadPages() {
+            try {
+                const response = await fetch('/api/pages');
+                pages = await response.json();
+            } catch (error) {
+                console.error('Erreur chargement pages:', error);
+            }
+        }
+
+        async function loadLogs() {
+            try {
+                const response = await fetch('/api/redirections/log');
+                const data = await response.json();
+                renderLogs(data.logs || []);
+            } catch (error) {
+                console.error('Erreur chargement logs:', error);
+                document.getElementById('logsContainer').innerHTML = 
+                    '<div class="error">Erreur lors du chargement des logs</div>';
+            }
+        }
+
+        function renderClients() {
+            const container = document.getElementById('clientsContainer');
+            
+            if (clients.length === 0) {
+                container.innerHTML = '<div class="no-clients">Aucun client connecté</div>';
+                return;
+            }
+
+            let html = `
+                <table class="clients-table">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>IP</th>
+                            <th>Pays</th>
+                            <th>Navigateur</th>
+                            <th>Page Actuelle</th>
+                            <th>Dernière Activité</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            clients.forEach(client => {
+                const flag = getCountryFlag(client.country_code);
+                
+                html += `
+                    <tr>
+                        <td><strong>${client.client_id}</strong></td>
+                        <td><code>${client.ip}</code></td>
+                        <td>
+                            <span class="country-flag">${flag}</span>
+                            ${client.country}
+                        </td>
+                        <td>${client.browser}</td>
+                        <td>${client.current_page}</td>
+                        <td>${client.last_activity}</td>
+                        <td>
+                            <div class="redirect-buttons">
+                                ${generateRedirectButtons(client.client_id)}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function generateRedirectButtons(clientId) {
+            let buttons = '';
+            
+            for (const [key, page] of Object.entries(pages)) {
+                buttons += `
+                    <button class="redirect-btn" onclick="redirectClient('${clientId}', '${page.url}')">
+                        ${page.name}
+                    </button>
+                `;
+            }
+            
+            return buttons;
+        }
+
+        function getCountryFlag(countryCode) {
+            const flags = {
+                'AT': '🇦🇹',
+                'MA': '🇲🇦',
+                'FR': '🇫🇷',
+                'DE': '🇩🇪',
+                'US': '🇺🇸',
+                'GB': '🇬🇧',
+                'LOCAL': '🏠'
+            };
+            
+            return flags[countryCode] || '🌍';
+        }
+
+        function renderLogs(logs) {
+            const container = document.getElementById('logsContainer');
+            
+            if (logs.length === 0) {
+                container.innerHTML = '<div class="loading">Aucun log disponible</div>';
+                return;
+            }
+
+            let html = '';
+            logs.forEach(log => {
+                let className = 'log-info';
+                if (log.includes('WARNING') || log.includes('BLOQUÉ')) {
+                    className = 'log-warning';
+                } else if (log.includes('ERROR')) {
+                    className = 'log-error';
+                }
+                
+                html += `<div class="log-entry ${className}">${escapeHtml(log)}</div>`;
+            });
+
+            container.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function redirectClient(clientId, url) {
+            try {
+                const response = await fetch('/api/redirect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        client_id: clientId,
+                        redirect_url: url
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`✅ Redirection envoyée vers ${url}`);
+                    loadStats(); // Actualiser les stats
+                } else {
+                    alert(`❌ Erreur: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Erreur redirection:', error);
+                alert('❌ Erreur lors de la redirection');
+            }
+        }
+
+        function refreshClients() {
+            loadClients();
+            loadStats();
+        }
+
+        function refreshLogs() {
+            loadLogs();
+        }
+
+        function logout() {
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                window.location.href = '/admin/logout';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
+

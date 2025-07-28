@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panneau d'Administration - Système de Redirection</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .connection-status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .connection-status.connected {
+            background: #27ae60;
+            color: white;
+        }
+
+        .connection-status.disconnected {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .connection-status.connecting {
+            background: #f39c12;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .controls {
+            padding: 30px;
+            background: white;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .clients-section {
+            padding: 30px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .clients-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .client-card {
+            background: white;
+            border: 2px solid #ecf0f1;
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .client-card:hover {
+            border-color: #3498db;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .client-card.inactive {
+            opacity: 0.6;
+            border-color: #bdc3c7;
+        }
+
+        .client-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .client-id {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+
+        .client-status {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .client-status.active {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .client-status.inactive {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+
+        .client-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .client-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .redirect-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .redirect-form input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .log-section {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .log-container {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .log-entry.info {
+            background: rgba(52, 152, 219, 0.2);
+        }
+
+        .log-entry.success {
+            background: rgba(39, 174, 96, 0.2);
+        }
+
+        .log-entry.warning {
+            background: rgba(243, 156, 18, 0.2);
+        }
+
+        .log-entry.error {
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        .timestamp {
+            color: #95a5a6;
+            font-size: 0.8em;
+        }
+
+        @media (max-width: 768px) {
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .redirect-form {
+                flex-direction: column;
+            }
+
+            .client-actions {
+                justify-content: center;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎛️ Panneau d'Administration</h1>
+            <p>Système de Redirection Avancé</p>
+            <div id="connection-status" class="connection-status connecting">
+                <span class="loading"></span> Connexion en cours...
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div id="active-clients-count" class="stat-number">0</div>
+                <div class="stat-label">Clients Actifs</div>
+            </div>
+            <div class="stat-card">
+                <div id="total-clients-count" class="stat-number">0</div>
+                <div class="stat-label">Total Clients</div>
+            </div>
+            <div class="stat-card">
+                <div id="total-redirections-count" class="stat-number">0</div>
+                <div class="stat-label">Redirections</div>
+            </div>
+            <div class="stat-card">
+                <div id="sessions-count" class="stat-number">0</div>
+                <div class="stat-label">Sessions</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <button class="btn btn-primary" onclick="refreshData()">
+                    🔄 Actualiser
+                </button>
+                <button class="btn btn-success" onclick="exportData()">
+                    📊 Exporter Données
+                </button>
+                <button class="btn btn-warning" onclick="clearLogs()">
+                    🗑️ Vider Logs
+                </button>
+            </div>
+
+            <div class="control-group">
+                <div class="input-group">
+                    <label>Redirection Rapide:</label>
+                    <select id="quick-redirect-url">
+                        <option value="/">Page d'accueil</option>
+                        <option value="/att.html">Page d'attente</option>
+                        <option value="/sms.html">Page SMS</option>
+                        <option value="/apk.html">Page APK</option>
+                        <option value="https://google.com">Google</option>
+                        <option value="https://facebook.com">Facebook</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="redirectAllClients()">
+                        📤 Rediriger Tous
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="clients-section">
+            <div class="section-title">
+                👥 Clients Connectés
+                <span id="clients-loading" class="loading" style="display: none;"></span>
+            </div>
+            <div id="clients-container" class="clients-grid">
+                <p style="text-align: center; color: #7f8c8d; padding: 40px;">
+                    Aucun client connecté pour le moment...
+                </p>
+            </div>
+        </div>
+
+        <div class="log-section">
+            <div class="section-title">
+                📋 Journal des Événements
+                <button class="btn btn-warning" onclick="clearLogs()" style="margin-left: auto; font-size: 0.8em;">
+                    Vider
+                </button>
+            </div>
+            <div id="log-container" class="log-container">
+                <div class="log-entry info">
+                    <span class="timestamp">[Système]</span> Panneau d'administration initialisé
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AdminPanel {
+            constructor() {
+                this.socket = null;
+                this.clients = {};
+                this.isConnected = false;
+                this.reconnectAttempts = 0;
+                this.maxReconnectAttempts = 10;
+                
+                this.init();
+            }
+
+            init() {
+                this.log('Initialisation du panneau d\'administration...', 'info');
+                this.connectSocket();
+            }
+
+            connectSocket() {
+                this.socket = io({
+                    transports: ['websocket', 'polling'],
+                    upgrade: true,
+                    rememberUpgrade: true
+                });
+
+                this.socket.on('connect', () => {
+                    this.log('✅ Connecté au serveur', 'success');
+                    this.isConnected = true;
+                    this.reconnectAttempts = 0;
+                    this.updateConnectionStatus('connected');
+                    
+                    // Rejoindre la room admin
+                    this.socket.emit('join_admin');
+                });
+
+                this.socket.on('admin_joined', (data) => {
+                    this.log('📋 Rejoint le panneau d\'administration', 'success');
+                    this.updateStats(data.stats);
+                    this.updateClients(data.clients);
+                });
+
+                this.socket.on('client_connected', (client) => {
+                    this.log(`👤 Client connecté: ${client.id} (${client.ip})`, 'info');
+                    this.clients[client.id] = client;
+                    this.updateClientsDisplay();
+                    this.updateStatsFromClients();
+                });
+
+                this.socket.on('client_disconnected', (data) => {
+                    const clientId = data.client_id;
+                    this.log(`👋 Client déconnecté: ${clientId}`, 'warning');
+                    if (this.clients[clientId]) {
+                        this.clients[clientId].is_active = false;
+                    }
+                    this.updateClientsDisplay();
+                    this.updateStatsFromClients();
+                });
+
+                this.socket.on('client_updated', (client) => {
+                    this.clients[client.id] = client;
+                    this.updateClientsDisplay();
+                    this.updateStatsFromClients();
+                });
+
+                this.socket.on('admin_data_refresh', (data) => {
+                    this.updateStats(data.stats);
+                    this.updateClients(data.clients);
+                });
+
+                this.socket.on('disconnect', () => {
+                    this.log('❌ Déconnecté du serveur', 'error');
+                    this.isConnected = false;
+                    this.updateConnectionStatus('disconnected');
+                    this.scheduleReconnect();
+                });
+
+                this.socket.on('connect_error', (error) => {
+                    this.log(`❌ Erreur de connexion: ${error}`, 'error');
+                    this.updateConnectionStatus('disconnected');
+                    this.scheduleReconnect();
+                });
+            }
+
+            scheduleReconnect() {
+                if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.reconnectAttempts++;
+                    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+                    
+                    this.log(`🔄 Tentative de reconnexion ${this.reconnectAttempts}/${this.maxReconnectAttempts} dans ${delay/1000}s`, 'warning');
+                    
+                    setTimeout(() => {
+                        this.connectSocket();
+                    }, delay);
+                }
+            }
+
+            updateConnectionStatus(status) {
+                const statusElement = document.getElementById('connection-status');
+                const loadingElement = statusElement.querySelector('.loading');
+                
+                if (loadingElement) {
+                    loadingElement.remove();
+                }
+                
+                statusElement.className = `connection-status ${status}`;
+                
+                switch(status) {
+                    case 'connected':
+                        statusElement.innerHTML = '✅ Connecté';
+                        break;
+                    case 'disconnected':
+                        statusElement.innerHTML = '❌ Déconnecté';
+                        break;
+                    case 'connecting':
+                        statusElement.innerHTML = '<span class="loading"></span> Connexion...';
+                        break;
+                }
+            }
+
+            updateStats(stats) {
+                document.getElementById('active-clients-count').textContent = stats.active_clients || 0;
+                document.getElementById('total-clients-count').textContent = stats.total_clients || 0;
+                document.getElementById('total-redirections-count').textContent = stats.total_redirections || 0;
+                document.getElementById('sessions-count').textContent = stats.sessions_count || 0;
+            }
+
+            updateStatsFromClients() {
+                const activeClients = Object.values(this.clients).filter(c => c.is_active).length;
+                const totalClients = Object.keys(this.clients).length;
+                const totalRedirections = Object.values(this.clients).reduce((sum, c) => sum + (c.redirect_count || 0), 0);
+                
+                document.getElementById('active-clients-count').textContent = activeClients;
+                document.getElementById('total-clients-count').textContent = totalClients;
+                document.getElementById('total-redirections-count').textContent = totalRedirections;
+            }
+
+            updateClients(clients) {
+                this.clients = {};
+                clients.forEach(client => {
+                    this.clients[client.id] = client;
+                });
+                this.updateClientsDisplay();
+            }
+
+            updateClientsDisplay() {
+                const container = document.getElementById('clients-container');
+                const clientsList = Object.values(this.clients);
+                
+                if (clientsList.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 40px;">Aucun client connecté pour le moment...</p>';
+                    return;
+                }
+
+                container.innerHTML = clientsList.map(client => this.createClientCard(client)).join('');
+            }
+
+            createClientCard(client) {
+                const isActive = client.is_active;
+                const statusClass = isActive ? 'active' : 'inactive';
+                const cardClass = isActive ? '' : 'inactive';
+                
+                return `
+                    <div class="client-card ${cardClass}">
+                        <div class="client-header">
+                            <div class="client-id">${client.id}</div>
+                            <div class="client-status ${statusClass}">
+                                ${isActive ? 'Actif' : 'Inactif'}
+                            </div>
+                        </div>
+                        
+                        <div class="client-info">
+                            <div class="info-item">
+                                <div class="info-label">Adresse IP</div>
+                                <div class="info-value">${client.ip}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Page Actuelle</div>
+                                <div class="info-value">${client.current_page}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Connecté Depuis</div>
+                                <div class="info-value">${new Date(client.connected_at).toLocaleString()}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Redirections</div>
+                                <div class="info-value">${client.redirect_count || 0}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Reconnexions</div>
+                                <div class="info-value">${client.reconnect_count || 0}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Dernière Activité</div>
+                                <div class="info-value">${new Date(client.last_seen).toLocaleString()}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="client-actions">
+                            <button class="btn btn-danger" onclick="adminPanel.forceDisconnectClient('${client.id}')" ${!isActive ? 'disabled' : ''}>
+                                🔌 Déconnecter
+                            </button>
+                        </div>
+                        
+                        <div class="redirect-form">
+                            <input type="text" id="redirect-url-${client.id}" placeholder="URL de redirection" value="/att.html">
+                            <button class="btn btn-primary" onclick="adminPanel.redirectClient('${client.id}')" ${!isActive ? 'disabled' : ''}>
+                                📤 Rediriger
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            redirectClient(clientId) {
+                const urlInput = document.getElementById(`redirect-url-${clientId}`);
+                const url = urlInput.value.trim();
+                
+                if (!url) {
+                    alert('Veuillez saisir une URL de redirection');
+                    return;
+                }
+
+                fetch('/api/redirect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        client_id: clientId,
+                        redirect_url: url
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.log(`📤 Client ${clientId} redirigé vers ${url}`, 'success');
+                    } else {
+                        this.log(`❌ Erreur de redirection: ${data.message}`, 'error');
+                        alert(`Erreur: ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    this.log(`❌ Erreur de redirection: ${error}`, 'error');
+                    alert(`Erreur de redirection: ${error}`);
+                });
+            }
+
+            forceDisconnectClient(clientId) {
+                if (confirm(`Êtes-vous sûr de vouloir déconnecter le client ${clientId} ?`)) {
+                    this.socket.emit('force_disconnect_client', { client_id: clientId });
+                    this.log(`🔌 Déconnexion forcée du client ${clientId}`, 'warning');
+                }
+            }
+
+            log(message, type = 'info') {
+                const container = document.getElementById('log-container');
+                const timestamp = new Date().toLocaleTimeString();
+                
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+                
+                container.appendChild(logEntry);
+                container.scrollTop = container.scrollHeight;
+                
+                // Limiter le nombre d'entrées de log
+                const entries = container.querySelectorAll('.log-entry');
+                if (entries.length > 100) {
+                    entries[0].remove();
+                }
+            }
+        }
+
+        // Fonctions globales
+        function refreshData() {
+            if (window.adminPanel && window.adminPanel.socket) {
+                window.adminPanel.socket.emit('admin_refresh');
+                window.adminPanel.log('🔄 Actualisation des données demandée', 'info');
+            }
+        }
+
+        function redirectAllClients() {
+            const url = document.getElementById('quick-redirect-url').value;
+            const activeClients = Object.values(window.adminPanel.clients).filter(c => c.is_active);
+            
+            if (activeClients.length === 0) {
+                alert('Aucun client actif à rediriger');
+                return;
+            }
+            
+            if (confirm(`Rediriger ${activeClients.length} client(s) vers ${url} ?`)) {
+                activeClients.forEach(client => {
+                    fetch('/api/redirect', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            client_id: client.id,
+                            redirect_url: url
+                        })
+                    });
+                });
+                
+                window.adminPanel.log(`📤 Redirection de ${activeClients.length} client(s) vers ${url}`, 'success');
+            }
+        }
+
+        function exportData() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                stats: {
+                    active_clients: Object.values(window.adminPanel.clients).filter(c => c.is_active).length,
+                    total_clients: Object.keys(window.adminPanel.clients).length,
+                    total_redirections: Object.values(window.adminPanel.clients).reduce((sum, c) => sum + (c.redirect_count || 0), 0)
+                },
+                clients: Object.values(window.adminPanel.clients)
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `redirection-data-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            window.adminPanel.log('📊 Données exportées', 'success');
+        }
+
+        function clearLogs() {
+            const container = document.getElementById('log-container');
+            container.innerHTML = '<div class="log-entry info"><span class="timestamp">[Système]</span> Logs vidés</div>';
+        }
+
+        // Initialiser le panneau d'administration
+        document.addEventListener('DOMContentLoaded', () => {
+            window.adminPanel = new AdminPanel();
+        });
+    </script>
+</body>
+</html>
+

